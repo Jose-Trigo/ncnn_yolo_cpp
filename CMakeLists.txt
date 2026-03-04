@@ -6,5 +6,5 @@ set(CMAKE_CXX_STANDARD 11)
 find_package(OpenCV REQUIRED)
 find_package(ncnn REQUIRED)
 
-add_executable(benchmark benchmark.cpp)
-target_link_libraries(benchmark ncnn ${OpenCV_LIBS})
+add_executable(main main.cpp)
+target_link_libraries(main ncnn ${OpenCV_LIBS})

@@ -136,8 +136,15 @@ static vector<Detection> postprocess(
     return dets;
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    bool save_video = true;
+    for (int i = 1; i < argc; ++i) {
+        if (string(argv[i]) == "--no-video") {
+            save_video = false;
+        }
+    }
+
     string video_path  = "data/brt_presentation.mp4";
     string model_param = "models/model.param";
     string model_bin   = "models/model.bin";
@@ -146,6 +153,7 @@ int main()
     cout << "YOLO NCNN Inference (timed stages)\n";
     cout << "Model: " << model_param << "\n";
     cout << "Video: " << video_path << "\n";
+    cout << "Save video: " << (save_video ? "yes" : "no") << "\n";
 
     ncnn::Net net;
     net.opt.num_threads = 4;
@@ -170,15 +178,18 @@ int main()
     int width = (int)cap.get(cv::CAP_PROP_FRAME_WIDTH);
     int height = (int)cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 
-    int fourcc = cv::VideoWriter::fourcc('H', '2', '6', '4');
-    cv::VideoWriter writer(output_video, fourcc, fps > 0 ? fps : 25.0, cv::Size(width, height));
-    if (!writer.isOpened()) {
-        cout << "H264 codec not available, falling back to MJPEG\n";
-        fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
+    cv::VideoWriter writer;
+    if (save_video) {
+        int fourcc = cv::VideoWriter::fourcc('H', '2', '6', '4');
         writer.open(output_video, fourcc, fps > 0 ? fps : 25.0, cv::Size(width, height));
         if (!writer.isOpened()) {
-            cout << "Error: Could not open output file.\n";
-            return -1;
+            cout << "H264 codec not available, falling back to MJPEG\n";
+            fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
+            writer.open(output_video, fourcc, fps > 0 ? fps : 25.0, cv::Size(width, height));
+            if (!writer.isOpened()) {
+                cout << "Error: Could not open output file.\n";
+                return -1;
+            }
         }
     }
 
@@ -224,7 +235,9 @@ int main()
         draw_detections(frame, dets);
 
         auto t_write_start = chrono::high_resolution_clock::now();
-        writer.write(frame);
+        if (save_video) {
+            writer.write(frame);
+        }
         auto t_write_end = chrono::high_resolution_clock::now();
 
         auto t_frame_end = chrono::high_resolution_clock::now();
@@ -247,7 +260,9 @@ int main()
     }
 
     cap.release();
-    writer.release();
+    if (save_video) {
+        writer.release();
+    }
 
     if (!t_total.empty()) {
         auto avg = [](const vector<double> &v) {

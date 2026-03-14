@@ -290,11 +290,21 @@ int main()
     cout << "Video: " << video_path << "\n";
 
     ncnn::Net net;
-    net.opt.num_threads = 4;     // Raspberry Pi 4 = 4 cores
-    net.opt.use_vulkan_compute = false; // Pi 4 has no GPU
-    net.opt.use_fp16_arithmetic = true;
-    net.opt.use_fp16_storage = true;
-    net.opt.use_fp16_packed = false;     // Raspberry Pi 4 = 4 cores
+
+    // CPU settings
+    net.opt.num_threads = 4;
+    net.opt.use_vulkan_compute = false;
+
+    // Disable FP16 on Pi4
+    net.opt.use_fp16_arithmetic = false;
+    net.opt.use_fp16_storage = false;
+    net.opt.use_fp16_packed = false;
+
+    // Performance optimizations
+    net.opt.use_packing_layout = true;
+    net.opt.use_winograd_convolution = true;
+
+    // Load model
     net.load_param(model_param.c_str());
     net.load_model(model_bin.c_str());
 

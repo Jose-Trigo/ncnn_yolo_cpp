@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(yolo_ncnn_benchmark)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mtune=native -ffast-math")
+
 set(CMAKE_CXX_STANDARD 11)
 
 find_package(OpenCV REQUIRED)

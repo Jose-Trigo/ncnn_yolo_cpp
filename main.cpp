@@ -66,7 +66,6 @@ static ncnn::Mat infer(ncnn::Net &net, const ncnn::Mat &input)
 {
     ncnn::Extractor ex = net.create_extractor();
     ex.set_light_mode(true);
-    ex.set_num_threads(4);
 
     ncnn::Mat out;
     ex.input("in0", input);

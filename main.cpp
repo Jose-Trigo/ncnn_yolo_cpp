@@ -66,6 +66,7 @@ static ncnn::Mat infer(ncnn::Net &net, const ncnn::Mat &input)
 {
     ncnn::Extractor ex = net.create_extractor();
     ex.set_light_mode(true);
+    ex.set_blob_allocator(ncnn::UnlockedPoolAllocator());
 
     ncnn::Mat out;
     ex.input("in0", input);

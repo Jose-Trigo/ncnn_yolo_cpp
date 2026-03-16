@@ -1,0 +1,16 @@
+yolo26n ncnn int8 quantization
+
+efacec@efacec:~/ncnn_yolo_cpp $ ./build/main --no-video
+YOLO NCNN Inference (timed stages)
+Model: models/yolo-int8.param
+Video: data/brt_presentation.mp4
+Save video: no
+Processed 50/1093 - pre: 13.6672 ms, infer: 282.468 ms, post: 0.077906 ms, io: 11.458 ms
+Processed 100/1093 - pre: 13.5111 ms, infer: 279.548 ms, post: 0.073018 ms, io: 11.5085 ms
+^C
+efacec@efacec:~/ncnn_yolo_cpp $
+
+
+
+yolov8n ncnn
+

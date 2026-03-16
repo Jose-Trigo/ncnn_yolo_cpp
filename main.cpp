@@ -43,8 +43,8 @@ static PreprocessState preprocess(const cv::Mat &frame)
 
     const int img_w = frame.cols;
     const int img_h = frame.rows;
-    const int target_w = 640;
-    const int target_h = 640;
+    const int target_w = 320;
+    const int target_h = 320;
 
     st.scale_x = static_cast<float>(img_w) / target_w;
     st.scale_y = static_cast<float>(img_h) / target_h;

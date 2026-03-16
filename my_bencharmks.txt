@@ -1,4 +1,4 @@
-yolo26n ncnn int8 quantization
+yolo26n ncnn int8 quantization 640
 
 efacec@efacec:~/ncnn_yolo_cpp $ ./build/main --no-video
 YOLO NCNN Inference (timed stages)
@@ -12,5 +12,33 @@ efacec@efacec:~/ncnn_yolo_cpp $
 
 
 
-yolov8n ncnn
+yolov8n ncnn  640
 
+efacec@efacec:~/ncnn_yolo_cpp $ ./build/main --no-video
+YOLO NCNN Inference (timed stages)
+Model: models/model.ncnn.param
+Video: data/brt_presentation.mp4
+Save video: no
+Processed 50/1093 - pre: 13.1423 ms, infer: 328.81 ms, post: 0.029925 ms, io: 11.1073 ms
+Processed 100/1093 - pre: 13.4299 ms, infer: 332.898 ms, post: 0.025888 ms, io: 19.3697 ms
+^C
+efacec@efacec:~/ncnn_yolo_cpp $
+
+
+
+
+yolov8n ncnn 320
+
+efacec@efacec:~/ncnn_yolo_cpp $ ./build/main --no-video
+YOLO NCNN Inference (timed stages)
+Model: models/model_320.ncnn.param
+Video: data/brt_presentation.mp4
+Save video: no
+Processed 50/1093 - pre: 3.53875 ms, infer: 112.685 ms, post: 0.013907 ms, io: 11.1533 ms
+Processed 100/1093 - pre: 3.51808 ms, infer: 109.29 ms, post: 0.006722 ms, io: 15.2443 ms
+Processed 150/1093 - pre: 3.46177 ms, infer: 110.776 ms, post: 0.006796 ms, io: 11.0914 ms
+Processed 200/1093 - pre: 3.43475 ms, infer: 115.845 ms, post: 0.0075 ms, io: 15.1741 ms
+Processed 250/1093 - pre: 3.49966 ms, infer: 108.681 ms, post: 0.006777 ms, io: 11.416 ms
+Processed 300/1093 - pre: 3.48793 ms, infer: 115.42 ms, post: 0.015685 ms, io: 11.2846 ms
+^C
+efacec@efacec:~/ncnn_yolo_cpp $

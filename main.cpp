@@ -146,8 +146,8 @@ int main(int argc, char** argv)
     }
 
     string video_path  = "data/brt_presentation.mp4";
-    //string model_param = "models/model.param";
-    //string model_bin   = "models/model.bin";
+    //string model_param = "models/model.ncnn.param";
+    //string model_bin   = "models/model.ncnn.bin";
     string model_param = "models/yolo-int8.param";
     string model_bin   = "models/yolo-int8.bin";
     string output_video = "output_ncnn.avi";

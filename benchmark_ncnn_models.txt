@@ -1,0 +1,42 @@
+efacec@efacec:~/ncnn/build $ ./benchmark/benchncnn
+loop_count = 4
+num_threads = 4
+powersave = 2
+gpu_device = -1
+cooling_down = 1
+          squeezenet  min =   42.01  max =   42.82  avg =   42.32
+     squeezenet_int8  min =   35.37  max =   35.45  avg =   35.42
+           mobilenet  min =   55.49  max =   55.88  avg =   55.62
+      mobilenet_int8  min =   31.38  max =   31.65  avg =   31.47
+        mobilenet_v2  min =   55.49  max =   56.38  avg =   55.97
+        mobilenet_v3  min =   42.65  max =   42.83  avg =   42.75
+          shufflenet  min =   29.33  max =   29.67  avg =   29.49
+       shufflenet_v2  min =   21.22  max =   21.32  avg =   21.28
+             mnasnet  min =   46.82  max =   46.88  avg =   46.85
+     proxylessnasnet  min =   48.02  max =   48.15  avg =   48.10
+     efficientnet_b0  min =   67.33  max =   67.42  avg =   67.37
+   efficientnetv2_b0  min =   71.56  max =   71.81  avg =   71.66
+        regnety_400m  min =   56.17  max =   56.66  avg =   56.44
+           blazeface  min =    7.48  max =    7.55  avg =    7.53
+           googlenet  min =  107.85  max =  108.46  avg =  108.27
+      googlenet_int8  min =   86.50  max =   86.74  avg =   86.61
+            resnet18  min =  111.31  max =  111.71  avg =  111.55
+       resnet18_int8  min =   68.89  max =   69.34  avg =   69.18
+             alexnet  min =   73.36  max =   74.18  avg =   73.78
+               vgg16  min =  498.29  max =  508.31  avg =  502.81
+          vgg16_int8  min =  341.02  max =  344.66  avg =  342.52
+            resnet50  min =  248.91  max =  251.34  avg =  249.81
+       resnet50_int8  min =  174.68  max =  175.97  avg =  175.62
+      squeezenet_ssd  min =  117.11  max =  118.72  avg =  117.61
+ squeezenet_ssd_int8  min =   87.98  max =   88.25  avg =   88.13
+       mobilenet_ssd  min =  113.58  max =  114.42  avg =  113.95
+  mobilenet_ssd_int8  min =   64.55  max =   65.59  avg =   64.95
+      mobilenet_yolo  min =  257.03  max =  258.75  avg =  257.81
+  mobilenetv2_yolov3  min =  175.49  max =  176.77  avg =  176.34
+         yolov4-tiny  min =  193.10  max =  197.17  avg =  194.31
+           nanodet_m  min =   63.92  max =   64.06  avg =   64.01
+    yolo-fastest-1.1  min =   41.56  max =   42.02  avg =   41.76
+      yolo-fastestv2  min =   32.58  max =   32.95  avg =   32.74
+  vision_transformer  min = 2185.57  max = 2294.12  avg = 2225.59
+          FastestDet  min =   33.18  max =   33.41  avg =   33.33
+efacec@efacec:~/ncnn/build $

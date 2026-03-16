@@ -146,10 +146,12 @@ int main(int argc, char** argv)
     }
 
     string video_path  = "data/brt_presentation.mp4";
-    string model_param = "models/model.ncnn.param";
-    string model_bin   = "models/model.ncnn.bin";
+    //string model_param = "models/model.ncnn.param";
+    //string model_bin   = "models/model.ncnn.bin";
     //string model_param = "models/yolo-int8.param";
     //string model_bin   = "models/yolo-int8.bin";
+    string model_param = "models/model_320.ncnn.param";
+    string model_bin   = "models/model_320.ncnn.bin";
     string output_video = "output_ncnn.avi";
 
     cout << "YOLO NCNN Inference (timed stages)\n";

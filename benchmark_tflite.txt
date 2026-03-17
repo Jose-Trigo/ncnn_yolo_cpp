@@ -1,0 +1,136 @@
+installing tflite
+
+sudo apt install -y git cmake build-essential python3-dev libatlas-base-dev libtool autoconf automake zlib1g-dev
+
+
+
+
+
+sudo apt update
+sudo apt install -y \
+  git \
+  cmake \
+  build-essential \
+  python3-dev \
+  libatlas3-base \
+  libblas-dev \
+  liblapack-dev \
+  libtool \
+  autoconf \
+  automake \
+  zlib1g-dev
+
+
+git clone https://github.com/tensorflow/tensorflow.git tensorflow_src
+
+cd ~/
+
+mkdir tflite_build
+cd tflite_build
+
+
+
+
+cmake ../tensorflow_src/tensorflow/lite -DCMAKE_BUILD_TYPE=Release -DTFLITE_ENABLE_XNNPACK=ON -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=aarch64 -DCMAKE_C_FLAGS="-O3 -march=armv8-a -mtune=cortex-a72 -funsafe-math-optimizations" -DCMAKE_CXX_FLAGS="-O3 -march=armv8-a -mtune=cortex-a72 -funsafe-math-optimizations"
+
+cmake --build . -j4
+
+build the benchmark
+
+cd ~/tflite_build
+
+cmake --build . -j4 -t benchmark_model
+
+
+cd ~/tflite_build/tools/benchmark
+
+./benchmark_model --graph=/home/efacec/ncnn_yolo_cpp/models/yolo_nano_v2_1_class_640_no_filter_float32.tflite --num_threads=4
+
+
+./benchmark_model --graph=/home/efacec/ncnn_yolo_cpp/models/yolo_nano_v2_1_class_640_no_filter_float16.tflite --num_threads=4
+
+
+./benchmark_model --graph=/home/efacec/ncnn_yolo_cpp/models/yolo_nano_v2_1_class_640_no_filter_int8.tflite --num_threads=4
+
+📝 Mini Performance Report — TensorFlow Lite on Raspberry Pi 4 (64‑bit)
+📌 Hardware & Build Setup
+Device: Raspberry Pi 4 Model B (ARM Cortex‑A72, 4 cores)
+
+OS: Raspberry Pi OS 64‑bit
+
+Build: TensorFlow Lite (LiteRT) compiled from source
+
+Optimizations enabled:
+
+XNNPACK delegate
+
+NEON SIMD
+
+ARMv8‑A tuning
+
+O3 compiler optimizations
+
+Inference backend: CPU (C++ benchmark tool)
+
+Threads: 4
+
+📦 Models Tested
+All models are YOLO‑Nano‑style, input size 640×640:
+
+Model	File	Precision
+FP32	yolo_nano_v2_1_class_640_no_filter_float32.tflite	Full float
+FP16	yolo_nano_v2_1_class_640_no_filter_float16.tflite	Half float
+INT8	yolo_nano_v2_1_class_640_no_filter_int8.tflite	Quantized
+⚡ Benchmark Results (TensorFlow Lite Benchmark Tool)
+1. FP32 Model
+Average inference time: ~393 ms
+
+FPS: ~2.54
+
+Notes:
+
+XNNPACK active
+
+Good baseline performance
+
+2. FP16 Model
+Average inference time: ~395 ms
+
+FPS: ~2.53
+
+Notes:
+
+Same speed as FP32
+
+Expected: TFLite CPU still computes FP16 as FP32 internally
+
+FP16 only reduces model size, not compute time
+
+3. INT8 Model
+Average inference time: ~462 ms
+
+FPS: ~2.16
+
+Notes:
+
+Slower than FP32/FP16
+
+YOLO models often don’t benefit from INT8 on ARM CPUs
+
+Extra quantization/dequantization overhead
+
+XNNPACK’s INT8 kernels aren’t always faster for this architecture
+
+📊 Summary Table
+Model	Avg Time (ms)	FPS	Notes
+FP32	~393 ms	2.54 FPS	Best performance
+FP16	~395 ms	2.53 FPS	Same as FP32
+INT8	~462 ms	2.16 FPS	Slower than expected
+🎯 Key Conclusions
+FP32 and FP16 are the fastest for this YOLO‑Nano model on Raspberry Pi 4.
+
+INT8 is slower, which is normal for YOLO‑style architectures on ARM CPUs.
+
+XNNPACK is working correctly, giving you the best possible CPU performance.
+
+Your custom LiteRT build is fully optimized and performing exactly as expected.

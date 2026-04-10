@@ -163,21 +163,7 @@ const int color_list[80][3] =
 
 void draw_bboxes(const cv::Mat& bgr, const std::vector<BoxInfo>& bboxes, object_rect effect_roi)
 {
-    static const char* class_names[] = { "person", "bicycle", "car", "motorcycle", "airplane", "bus",
-                                        "train", "truck", "boat", "traffic light", "fire hydrant",
-                                        "stop sign", "parking meter", "bench", "bird", "cat", "dog",
-                                        "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
-                                        "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-                                        "skis", "snowboard", "sports ball", "kite", "baseball bat",
-                                        "baseball glove", "skateboard", "surfboard", "tennis racket",
-                                        "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
-                                        "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
-                                        "hot dog", "pizza", "donut", "cake", "chair", "couch",
-                                        "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
-                                        "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
-                                        "toaster", "sink", "refrigerator", "book", "clock", "vase",
-                                        "scissors", "teddy bear", "hair drier", "toothbrush"
-    };
+    static const char* class_names[] = { "sign" };  };
 
     cv::Mat image = bgr.clone();
     int src_w = image.cols;
@@ -270,6 +256,7 @@ int webcam_demo(NanoDet& detector, int cam_id)
     return 0;
 }
 
+/*
 int video_demo(NanoDet& detector, const char* path)
 {
     cv::Mat image;
@@ -287,6 +274,45 @@ int video_demo(NanoDet& detector, const char* path)
         draw_bboxes(image, results, effect_roi);
         cv::waitKey(1);
     }
+    return 0;
+}
+*/
+int video_demo(NanoDet& detector, const char* path)
+{
+    cv::Mat image;
+    cv::VideoCapture cap(path);
+    int height = detector.input_size[0];
+    int width = detector.input_size[1];
+
+    // Get video properties
+    int fourcc = static_cast<int>(cap.get(cv::CAP_PROP_FOURCC));
+    double fps = cap.get(cv::CAP_PROP_FPS);
+    int frame_width = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_WIDTH));
+    int frame_height = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+    // Open output video writer
+    cv::VideoWriter writer("output_with_detections.avi", fourcc, fps, cv::Size(frame_width, frame_height));
+
+    if (!writer.isOpened()) {
+        fprintf(stderr, "Could not open the output video for write\n");
+        return -1;
+    }
+
+    while (true)
+    {
+        cap >> image;
+        if (image.empty()) break;
+
+        object_rect effect_roi;
+        cv::Mat resized_img;
+        resize_uniform(image, resized_img, cv::Size(width, height), effect_roi);
+        auto results = detector.detect(resized_img, 0.4, 0.5);
+
+        draw_bboxes(image, results, effect_roi); // Draw on the original frame
+
+        writer.write(image); // Save frame to output video
+    }
+    writer.release();
     return 0;
 }
 

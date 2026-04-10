@@ -327,7 +327,7 @@ int benchmark(NanoDet& detector)
 
 int main(int argc, char** argv)
 {
-    ncnn::set_omp_num_threads(4);
+    //ncnn::set_omp_num_threads(4);
     if (argc != 3)
     {
         fprintf(stderr, "usage: %s [mode] [path]. \n For webcam mode=0, path is cam id; \n For image demo, mode=1, path=xxx/xxx/*.jpg; \n For video, mode=2; \n For benchmark, mode=3 path=0.\n", argv[0]);

@@ -332,7 +332,7 @@ int main(int argc, char** argv)
         fprintf(stderr, "usage: %s [mode] [path]. \n For webcam mode=0, path is cam id; \n For image demo, mode=1, path=xxx/xxx/*.jpg; \n For video, mode=2; \n For benchmark, mode=3 path=0.\n", argv[0]);
         return -1;
     }
-    NanoDet detector = NanoDet("./nanodet.param", "./nanodet.bin", true);
+    NanoDet detector = NanoDet("./nanodet_int8.param", "./nanodet_int8.bin", true);
     int mode = atoi(argv[1]);
     switch (mode)
     {

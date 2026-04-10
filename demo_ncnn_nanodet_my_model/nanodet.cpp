@@ -110,13 +110,13 @@ std::vector<BoxInfo> NanoDet::detect(cv::Mat image, float score_threshold, float
 #if NCNN_VULKAN
     ex.set_vulkan_compute(this->hasGPU);
 #endif
-    ex.input("data", input);
+    ex.input("in0", input);
 
     std::vector<std::vector<BoxInfo>> results;
     results.resize(this->num_class);
 
     ncnn::Mat out;
-    ex.extract("output", out);
+    ex.extract("out0", out);
     // printf("%d %d %d \n", out.w, out.h, out.c);
 
     // generate center priors in format of (x, y, stride)

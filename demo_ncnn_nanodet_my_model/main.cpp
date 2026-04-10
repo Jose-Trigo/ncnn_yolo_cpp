@@ -161,9 +161,10 @@ const int color_list[80][3] =
     {127 ,127 ,  0},
 };
 
+
 void draw_bboxes(const cv::Mat& bgr, const std::vector<BoxInfo>& bboxes, object_rect effect_roi)
 {
-    static const char* class_names[] = { "sign" };  };
+    static const char* class_names[] = { "sign" };
 
     cv::Mat image = bgr.clone();
     int src_w = image.cols;

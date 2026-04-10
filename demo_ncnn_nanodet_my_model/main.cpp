@@ -352,7 +352,13 @@ int video_demo(NanoDet& detector, const char* path)
         object_rect effect_roi;
         cv::Mat resized_img;
         resize_uniform(image, resized_img, cv::Size(width, height), effect_roi);
-        auto results = detector.detect(resized_img, 0.4, 0.5);
+        auto results = detector.detect(resized_img, 0.1, 0.5);
+
+        printf("Detected %zu boxes\n", results.size());
+        for (const auto& box : results) {
+            printf("label=%d score=%.2f box=[%.1f %.1f %.1f %.1f]\n",
+                box.label, box.score, box.x1, box.y1, box.x2, box.y2);
+        }
 
         draw_bboxes(image, results, effect_roi); // Draw on the original frame
 

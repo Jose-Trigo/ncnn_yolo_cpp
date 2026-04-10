@@ -161,7 +161,7 @@ const int color_list[80][3] =
     {127 ,127 ,  0},
 };
 
-
+/*
 void draw_bboxes(const cv::Mat& bgr, const std::vector<BoxInfo>& bboxes, object_rect effect_roi)
 {
     static const char* class_names[] = { "sign" };
@@ -207,7 +207,51 @@ void draw_bboxes(const cv::Mat& bgr, const std::vector<BoxInfo>& bboxes, object_
 
     cv::imshow("image", image);
 }
+*/
 
+void draw_bboxes(const cv::Mat& bgr, const std::vector<BoxInfo>& bboxes, object_rect effect_roi)
+{
+    static const char* class_names[] = { "sign" };
+
+    // Draw directly on the input image (no imshow)
+    cv::Mat image = bgr; // No .clone(), draw on the original
+
+    int src_w = image.cols;
+    int src_h = image.rows;
+    int dst_w = effect_roi.width;
+    int dst_h = effect_roi.height;
+    float width_ratio = (float)src_w / (float)dst_w;
+    float height_ratio = (float)src_h / (float)dst_h;
+
+    for (size_t i = 0; i < bboxes.size(); i++)
+    {
+        const BoxInfo& bbox = bboxes[i];
+        cv::Scalar color = cv::Scalar(color_list[bbox.label][0], color_list[bbox.label][1], color_list[bbox.label][2]);
+        cv::rectangle(image, cv::Rect(cv::Point((bbox.x1 - effect_roi.x) * width_ratio, (bbox.y1 - effect_roi.y) * height_ratio),
+                                      cv::Point((bbox.x2 - effect_roi.x) * width_ratio, (bbox.y2 - effect_roi.y) * height_ratio)), color);
+
+        char text[256];
+        sprintf(text, "%s %.1f%%", class_names[bbox.label], bbox.score * 100);
+
+        int baseLine = 0;
+        cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.4, 1, &baseLine);
+
+        int x = (bbox.x1 - effect_roi.x) * width_ratio;
+        int y = (bbox.y1 - effect_roi.y) * height_ratio - label_size.height - baseLine;
+        if (y < 0)
+            y = 0;
+        if (x + label_size.width > image.cols)
+            x = image.cols - label_size.width;
+
+        cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
+            color, -1);
+
+        cv::putText(image, text, cv::Point(x, y + label_size.height),
+            cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255, 255, 255));
+    }
+    // REMOVE or COMMENT OUT the following line:
+    // cv::imshow("image", image);
+}
 
 int image_demo(NanoDet &detector, const char* imagepath)
 {
@@ -278,6 +322,7 @@ int video_demo(NanoDet& detector, const char* path)
     return 0;
 }
 */
+
 int video_demo(NanoDet& detector, const char* path)
 {
     cv::Mat image;

@@ -294,7 +294,7 @@ int webcam_demo(NanoDet& detector, int cam_id)
         object_rect effect_roi;
         cv::Mat resized_img;
         resize_uniform(image, resized_img, cv::Size(width, height), effect_roi);
-        auto results = detector.detect(resized_img, 0.1, 0.5);
+        auto results = detector.detect(resized_img, 0.2, 0.45);
         draw_bboxes(image, results, effect_roi);
         cv::waitKey(1);
     }
@@ -352,7 +352,7 @@ int video_demo(NanoDet& detector, const char* path)
         object_rect effect_roi;
         cv::Mat resized_img;
         resize_uniform(image, resized_img, cv::Size(width, height), effect_roi);
-        auto results = detector.detect(resized_img, 0.10, 0.45);
+        auto results = detector.detect(resized_img, 0.2, 0.45);
 
         printf("Detected %zu boxes\n", results.size());
         for (const auto& box : results) {

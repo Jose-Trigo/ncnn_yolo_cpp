@@ -7,7 +7,7 @@
 #define NANODET_H
 
 #include <opencv2/core/core.hpp>
-#include <net.h>
+#include <ncnn/net.h>
 
 typedef struct HeadInfo
 {

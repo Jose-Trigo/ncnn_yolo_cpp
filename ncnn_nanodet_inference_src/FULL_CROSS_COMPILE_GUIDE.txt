@@ -1,0 +1,715 @@
+Raspberry Pi Cross-Compilation Environment
+OpenCV + NCNN
+WSL2 Ubuntu -> Raspberry Pi 64-bit ARM
+
+Version: Reconstructed Documentation
+Date: 2026-06-20
+
+====================================================================
+GOAL
+
+Create a reliable cross-compilation environment on WSL2 that can:
+
+Build ARM64 (aarch64) binaries
+Link against Raspberry Pi libraries
+Use Raspberry Pi OpenCV installation
+Use Raspberry Pi NCNN installation
+Avoid GLIBC version mismatch problems
+Produce binaries on WSL2
+Copy binaries to Raspberry Pi
+Run without rebuilding on the Pi
+
+Final result achieved:
+
+WSL2 builds ARM64 binaries.
+
+Pi runs them successfully.
+
+Successfully tested:
+
+OpenCV
+NCNN
+OpenCV video decoding
+NCNN inference initialization
+Dynamic linking
+Sysroot-based cross compilation
+====================================================================
+MACHINE LAYOUT
+
+Development machine:
+
+Windows 11
+└── WSL2 Ubuntu
+
+Target machine:
+
+Raspberry Pi
+64-bit Debian ARM64
+
+Network:
+
+WSL2
+192.168.1.99
+
+Pi
+192.168.1.75
+
+User:
+
+efacec
+
+====================================================================
+PROBLEM WE ORIGINALLY HIT
+
+Initial builds produced:
+
+GLIBC_2.43 not found
+
+Example:
+
+./opencv_ncnn_test:
+version `GLIBC_2.43' not found
+
+Reason:
+
+Compiler was finding libraries from WSL2 Ubuntu instead of Raspberry Pi.
+
+Binary linked against:
+
+glibc 2.43
+
+Pi only had:
+
+glibc 2.41
+
+Result:
+
+Binary compiled successfully.
+
+Binary crashed on Raspberry Pi.
+
+====================================================================
+SOLUTION
+
+Build against a Raspberry Pi sysroot.
+
+Meaning:
+
+Compiler sees Raspberry Pi files during build.
+
+Not Ubuntu files.
+
+Therefore:
+
+Headers come from Pi.
+
+Libraries come from Pi.
+
+Linker uses Pi versions.
+
+Generated binary becomes compatible with Pi.
+
+====================================================================
+STEP 1 - INSTALL CROSS COMPILER ON WSL2
+
+Install ARM64 cross compiler:
+
+sudo apt update
+
+sudo apt install \
+gcc-aarch64-linux-gnu \
+g++-aarch64-linux-gnu \
+binutils-aarch64-linux-gnu \
+cmake \
+ninja-build \
+rsync \
+pkg-config
+
+Verify:
+
+aarch64-linux-gnu-gcc --version
+
+Observed:
+
+aarch64-linux-gnu-gcc (Ubuntu 15.2.0)
+
+IMPORTANT:
+
+Compiler version does NOT need to match Pi GCC version.
+
+Compiler only generates machine code.
+
+Compatibility depends mostly on:
+
+glibc
+runtime libraries
+linker inputs
+
+not GCC version.
+
+====================================================================
+STEP 2 - PREPARE PI
+
+Install OpenCV.
+
+Install NCNN.
+
+Install required runtime dependencies.
+
+Final installations existed in:
+
+/opt/opencv
+/opt/ncnn
+
+OpenCV structure:
+
+/opt/opencv
+├── bin
+├── include
+├── lib
+└── share
+
+NCNN structure:
+
+/opt/ncnn
+├── bin
+├── include
+└── lib
+
+Observed NCNN library:
+
+/opt/ncnn/lib/libncnn.so
+
+Observed OpenCV library:
+
+/opt/opencv/lib/libopencv_core.so
+====================================================================
+STEP 3 - CONFIGURE RUNTIME LIBRARIES ON PI
+
+Create:
+
+sudo nano /etc/ld.so.conf.d/opencv.conf
+
+Content:
+
+/opt/opencv/lib
+
+Create:
+
+sudo nano /etc/ld.so.conf.d/ncnn.conf
+
+Content:
+
+/opt/ncnn/lib
+
+Update cache:
+
+sudo ldconfig
+
+Verify:
+
+grep -R "/opt/opencv" /etc/ld.so.conf*
+grep -R "/opt/ncnn" /etc/ld.so.conf*
+
+Expected:
+
+/etc/ld.so.conf.d/opencv.conf:/opt/opencv/lib
+/etc/ld.so.conf.d/ncnn.conf:/opt/ncnn/lib
+
+Result:
+
+No LD_LIBRARY_PATH required.
+
+Programs automatically find libraries.
+
+====================================================================
+STEP 4 - CREATE SYSROOT ON WSL2
+
+Directory:
+
+~/sysroot/pi
+
+Observed size:
+
+5.5G
+
+Final structure:
+
+~/sysroot/pi
+├── lib
+├── usr
+└── opt
+====================================================================
+STEP 5 - COPY PI FILESYSTEM INTO SYSROOT
+
+Using rsync from Pi.
+
+Goal:
+
+Copy:
+
+/lib
+/usr
+/opt/opencv
+/opt/ncnn
+
+into:
+
+~/sysroot/pi
+
+Resulting structure:
+
+~/sysroot/pi/lib
+~/sysroot/pi/usr
+~/sysroot/pi/opt/opencv
+~/sysroot/pi/opt/ncnn
+
+CMDS
+
+rsync -aAXz --delete \
+--info=progress2 \
+efacec@192.168.1.75:/lib/ \
+~/sysroot/pi/lib/
+
+
+rsync -aAXz --delete \
+--info=progress2 \
+efacec@192.168.1.75:/usr/ \
+~/sysroot/pi/usr/
+
+
+rsync -aAXz --delete \
+--info=progress2 \
+efacec@192.168.1.75:/opt/ \
+~/sysroot/pi/opt/
+
+
+Critical files:
+
+~/sysroot/pi/lib/aarch64-linux-gnu/libc.so.6
+
+~/sysroot/pi/lib/ld-linux-aarch64.so.1
+
+Verification:
+
+find ~/sysroot/pi -name libc.so.6
+
+Observed:
+
+~/sysroot/pi/usr/lib/aarch64-linux-gnu/libc.so.6
+~/sysroot/pi/lib/aarch64-linux-gnu/libc.so.6
+====================================================================
+STEP 6 - VERIFY OPENCV INSIDE SYSROOT
+
+Check:
+
+find ~/sysroot/pi -name OpenCVConfig.cmake
+
+Observed:
+
+~/sysroot/pi/opt/opencv/lib/cmake/opencv4/OpenCVConfig.cmake
+
+Check:
+
+find ~/sysroot/pi -name libopencv_core*
+
+Observed:
+
+libopencv_core.so
+libopencv_core.so.410
+libopencv_core.so.4.10.0
+
+Everything present.
+
+====================================================================
+STEP 7 - VERIFY NCNN INSIDE SYSROOT
+
+Observed:
+
+~/sysroot/pi/opt/ncnn/include/ncnn/net.h
+
+Observed:
+
+~/sysroot/pi/opt/ncnn/lib/libncnn.so
+
+Important:
+
+NCNN headers are under:
+
+include/ncnn
+
+not directly under include.
+
+Therefore:
+
+Wrong:
+
+#include <net.h>
+
+unless include path points at:
+
+.../include/ncnn
+
+Alternative:
+
+#include <ncnn/net.h>
+====================================================================
+STEP 8 - TOOLCHAIN FILE
+
+File:
+
+~/cross/arm64-rpi-toolchain.cmake
+
+Purpose:
+
+Force CMake to:
+
+target ARM64
+use sysroot
+search Pi libraries
+search Pi headers
+
+.cmake file
+
+arm64-rpi-toolchain.cmake
+
+# ===== BASIC SYSTEM =====
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+
+# ===== SYSROOT =====
+set(CMAKE_SYSROOT $ENV{HOME}/sysroot/pi)
+
+# Prevent host contamination
+set(CMAKE_FIND_ROOT_PATH $ENV{HOME}/sysroot/pi)
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+# ===== COMPILER =====
+set(CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
+
+# ===== IMPORTANT FLAGS =====
+set(CMAKE_C_FLAGS "--sysroot=${CMAKE_SYSROOT}")
+set(CMAKE_CXX_FLAGS "--sysroot=${CMAKE_SYSROOT}")
+
+set(CMAKE_EXE_LINKER_FLAGS "--sysroot=${CMAKE_SYSROOT}")
+set(CMAKE_SHARED_LINKER_FLAGS "--sysroot=${CMAKE_SYSROOT}")
+
+# ===== OPENCV + NCNN (CUSTOM /opt) =====
+set(CMAKE_PREFIX_PATH
+    ${CMAKE_SYSROOT}/opt/opencv
+    ${CMAKE_SYSROOT}/opt/ncnn
+)
+
+# OpenCV hint (important for find_package)
+set(OpenCV_DIR ${CMAKE_SYSROOT}/opt/opencv/lib/cmake/opencv4)
+
+
+====================================================================
+STEP 9 - SIMPLE OPENCV TEST
+
+Created:
+
+#include <opencv2/opencv.hpp>
+
+int main()
+{
+    cv::Mat img(100,100,CV_8UC3);
+
+    std::cout
+        << "OpenCV OK: "
+        << img.cols
+        << "x"
+        << img.rows
+        << std::endl;
+}
+
+Build:
+
+mkdir build
+cd build
+
+cmake .. \
+-DCMAKE_TOOLCHAIN_FILE=~/cross/arm64-rpi-toolchain.cmake
+
+make -j$(nproc)
+
+Result:
+
+Successful.
+
+Verify binary:
+
+file test
+
+Observed:
+
+ELF 64-bit
+ARM aarch64
+====================================================================
+STEP 10 - DEPLOY TO PI
+
+Copy:
+
+scp test efacec@192.168.1.75:~
+
+Run:
+
+./test
+
+Output:
+
+OpenCV OK: 100x100
+
+Cross compilation confirmed working.
+
+====================================================================
+STEP 11 - OPENCV + NCNN TEST
+
+Created test:
+
+Open video
+Read frames
+Create NCNN network object
+Process frames
+
+Purpose:
+
+Verify:
+
+OpenCV runtime works
+
+AND
+
+NCNN runtime works
+
+AND
+
+cross-compiled executable works
+
+
+CMakeLists.txt that works
+
+
+cmake_minimum_required(VERSION 3.10)
+project(opencv_ncnn_test)
+
+set(CMAKE_CXX_STANDARD 17)
+
+find_package(OpenCV REQUIRED)
+
+set(NCNN_DIR /home/efacec/sysroot/pi/opt/ncnn)
+
+include_directories(
+    ${OpenCV_INCLUDE_DIRS}
+    ${NCNN_DIR}/include
+)
+
+add_executable(test main.cpp)
+
+target_link_libraries(test
+    ${OpenCV_LIBS}
+    ${NCNN_DIR}/lib/libncnn.so
+)
+
+====================================================================
+STEP 12 - NCNN INCLUDE ISSUE
+
+Error:
+
+fatal error: net.h: No such file or directory
+
+Reason:
+
+NCNN headers located at:
+
+/opt/ncnn/include/ncnn/net.h
+
+Fix:
+
+Either:
+
+#include <ncnn/net.h>
+
+or
+
+add include path:
+
+/opt/ncnn/include/ncnn
+
+Then:
+
+#include <net.h>
+
+works.
+
+====================================================================
+STEP 13 - RUN TEST ON PI
+
+Command:
+
+./test ~/videos/test.mp4
+
+Observed:
+
+Frame 0 processed
+Frame 1 processed
+Frame 2 processed
+...
+Frame 399 processed
+
+Success.
+
+This proved:
+
+Video decoding works
+OpenCV works
+NCNN loads
+Binary runs
+Cross compilation works
+====================================================================
+STEP 14 - VERIFY LINKING
+
+Command:
+
+ldd ~/test
+
+Observed:
+
+libncnn.so.1
+=> /opt/ncnn/lib/libncnn.so.1
+
+libopencv_videoio.so.410
+=> /opt/opencv/lib/libopencv_videoio.so.410
+
+libopencv_core.so.410
+=> /opt/opencv/lib/libopencv_core.so.410
+
+This is exactly what we wanted.
+
+Program is using:
+
+Pi OpenCV
+
+Pi NCNN
+
+not system copies.
+
+====================================================================
+WHY GCC 15 ON WSL2 WORKS WITH GCC 14 ON PI
+
+Compiler version and runtime version are different things.
+
+Build machine:
+
+GCC 15.2
+
+Target machine:
+
+GCC 14
+
+This is fine.
+
+What matters:
+
+Binary linked against Pi libraries.
+
+Because sysroot contains Pi glibc.
+
+Therefore:
+
+Compiler 15 generates code.
+
+Linker uses Pi runtime.
+
+Binary runs.
+
+====================================================================
+FINAL WORKFLOW
+
+Whenever developing:
+
+Write code on WSL2
+Build
+mkdir build
+cd build
+
+cmake .. \
+-DCMAKE_TOOLCHAIN_FILE=~/cross/arm64-rpi-toolchain.cmake
+
+make -j$(nproc)
+Verify binary
+file myapp
+
+Should show:
+
+ARM aarch64
+Copy
+scp myapp efacec@192.168.1.75:~
+Run on Pi
+./myapp
+====================================================================
+WHEN TO REFRESH SYSROOT
+
+Refresh if:
+
+Pi upgraded
+OpenCV rebuilt
+NCNN rebuilt
+Major package updates
+glibc updated
+
+Then re-rsync:
+
+/lib
+/usr
+/opt/opencv
+/opt/ncnn
+
+into:
+
+~/sysroot/pi
+====================================================================
+CURRENT STATUS
+
+SUCCESSFULLY VERIFIED:
+
+[OK] ARM64 cross compiler installed
+
+[OK] Sysroot created
+
+[OK] Pi glibc copied
+
+[OK] Pi OpenCV copied
+
+[OK] Pi NCNN copied
+
+[OK] Toolchain file working
+
+[OK] CMake cross compilation working
+
+[OK] OpenCV test builds
+
+[OK] OpenCV test runs
+
+[OK] OpenCV + NCNN test builds
+
+[OK] OpenCV video decoding works
+
+[OK] NCNN runtime loads
+
+[OK] Dynamic linker configuration works
+
+[OK] No LD_LIBRARY_PATH required
+
+[OK] No GLIBC mismatch
+
+[OK] WSL2 -> Raspberry Pi deployment working
+
+RESULT:
+
+You now have a functioning Raspberry Pi ARM64 cross-compilation environment where development happens entirely on WSL2 and executables are deployed directly to the Pi for testing, using the Pi's own OpenCV, NCNN, glibc, and runtime libraries through a synchronized sysroot.

@@ -7,7 +7,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
-#include <net.h>
+#include <ncnn/net.h>
 #include "nanodet.h"
 
 // If you want to set ncnn OpenMP threads manually, uncomment and set:
